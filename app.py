@@ -15,11 +15,6 @@ try:
     df = load_data()
     st.title("🏥 GESF Colpasante")
 
-    # --- SIDEBAR: FILTROS ---
-    st.sidebar.header("Filtros Gerais")
-    sexo_filtro = st.sidebar.multiselect("Filtrar por Sexo", options=df['SEXO'].unique(), default=df['SEXO'].unique())
-    df_filtrado = df[df['SEXO'].isin(sexo_filtro)]
-
     # --- SEÇÃO 1: MAPA E APOL1 ---
     col_mapa, col_apol = st.columns([2, 1])
 
