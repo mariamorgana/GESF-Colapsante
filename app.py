@@ -8,11 +8,11 @@ st.set_page_config(page_title="Dashboard Clínico", layout="wide")
 @st.cache_data
 def load_data():
     # Carrega seu arquivo 'dados.csv' do GitHub
-    df = pd.read_csv("dados.csv")
+    df_filtrado = pd.read_csv("dados.csv")
     return df
 
 try:
-    df = load_data()
+    df_filtrado = load_data()
     st.title("🏥 GESF Colpasante")
 
     # --- SEÇÃO 1: MAPA E APOL1 ---
