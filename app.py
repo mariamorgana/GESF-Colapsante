@@ -9,7 +9,7 @@ st.set_page_config(page_title="Dashboard Clínico", layout="wide")
 def load_data():
     # Carrega seu arquivo 'dados.csv' do GitHub
     df_filtrado = pd.read_csv("dados.csv")
-    return df
+    return df_filtrado
 
 try:
     df_filtrado = load_data()
