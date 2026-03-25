@@ -13,12 +13,12 @@ def load_data():
 
 try:
     df = load_data()
-    st.title("🏥 Análise de Procedência e Marcadores Genéticos")
+    st.title("🏥 GESF Colpasante")
 
     # --- SIDEBAR: FILTROS ---
     st.sidebar.header("Filtros Gerais")
-    sexo_filtro = st.sidebar.multiselect("Filtrar por Sexo", options=df['sexo'].unique(), default=df['sexo'].unique())
-    df_filtrado = df[df['sexo'].isin(sexo_filtro)]
+    sexo_filtro = st.sidebar.multiselect("Filtrar por Sexo", options=df['SEXO'].unique(), default=df['sexo'].unique())
+    df_filtrado = df[df['SEXO'].isin(sexo_filtro)]
 
     # --- SEÇÃO 1: MAPA E APOL1 ---
     col_mapa, col_apol = st.columns([2, 1])
@@ -54,7 +54,7 @@ try:
     st.subheader("📊 Boxplots: Distribuição por Variável")
     
     # Seleção múltipla para comparar variáveis
-    var_numerica = st.selectbox("Escolha a variável numérica para o Boxplot:", ['idade', 'creat', 'P24H', 'IFTA'])
+    var_numerica = st.selectbox("Escolha a variável numérica para o Boxplot:", ['IDADE', 'CREAT', 'P24H', 'IFTA'])
     
     # Criando o Boxplot interativo
     fig_box = px.box(
