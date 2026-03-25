@@ -8,7 +8,7 @@ st.set_page_config(page_title="Dashboard Clínico", layout="wide")
 @st.cache_data
 def load_data():
     # Carrega seu arquivo 'dados.csv' do GitHub
-    df = pd.read_csv("dados.csv", encoding='latin-1', sep=None, engine='python')
+    df = pd.read_csv("dados.csv")
     return df
 
 try:
