@@ -1,78 +1,54 @@
 import streamlit as st
 import pandas as pd
 import pydeck as pdk
-import plotly.express as px
 
-st.set_page_config(page_title="Dashboard Clínico", layout="wide")
+st.set_page_config(page_title="Mapa de Procedência", layout="wide")
 
 @st.cache_data
-def load_data():
-    # Carrega seu arquivo 'dados.csv' do GitHub
-    df_filtrado = pd.read_csv("dados.csv")
-    return df_filtrado
+def load_excel():
+    # Carrega o arquivo Excel (certifique-se de que o nome coincida com o arquivo no GitHub)
+    df = pd.read_excel("dados.xlsx", engine='openpyxl')
+    # Padroniza nomes das colunas para minúsculo e remove espaços
+    df.columns = df.columns.str.strip().str.lower()
+    return df
 
 try:
-    df_filtrado = load_data()
-    st.title("🏥 GESF Colpasante")
+    df = load_excel()
+    st.title("📍 Mapa de Procedência por Cidade")
 
-    # --- SEÇÃO 1: MAPA E APOL1 ---
-    col_mapa, col_apol = st.columns([2, 1])
+    # 1. Agrupar dados para contar casos por cidade e coordenada
+    # O código assume que as colunas no Excel se chamam: proc, lat, lon
+    map_df = df.groupby(['proc', 'lat', 'lon']).size().reset_index(name='casos')
 
-    with col_mapa:
-        st.subheader("📍 Casos por Cidade")
-        map_df = df_filtrado.groupby(['PROC', 'lat', 'lon']).size().reset_index(name='casos')
-        st.pydeck_chart(pdk.Deck(
-            initial_view_state=pdk.ViewState(latitude=map_df['lat'].mean(), longitude=map_df['lon'].mean(), zoom=4),
-            layers=[pdk.Layer(
-                "ScatterplotLayer", map_df, get_position='[lon, lat]',
-                get_color='[200, 30, 0, 160]', get_radius='casos * 5000', pickable=True
-            )],
-            tooltip={"text": "{PROC}: {casos} casos"}
-        ))
-
-    with col_apol:
-        st.subheader("🧬 Distribuição APOL1")
-        # Gráfico de barras para as categorias de APOL1
-        fig_apol = px.bar(
-            df_filtrado['APOL1'].value_counts().reset_index(),
-            x='APOL1', 
-            y='count',
-            labels={'APOL1': 'Categoria', 'count': 'Frequência'},
-            color='APOL1',
-            color_discrete_sequence=px.colors.qualitative.Pastel
-        )
-        st.plotly_chart(fig_apol, use_container_width=True)
-
-    st.divider()
-
-    # --- SEÇÃO 2: BOXPLOTS (VARIÁVEIS NUMÉRICAS) ---
-    st.subheader("📊 Boxplots: Distribuição por Variável")
-    
-    # Seleção múltipla para comparar variáveis
-    var_numerica = st.selectbox("Escolha a variável numérica para o Boxplot:", ['IDADE', 'CREAT', 'P24H', 'IFTA'])
-    
-    # Criando o Boxplot interativo
-    fig_box = px.box(
-        df_filtrado, 
-        x='APOL1', # Compara a variável numérica entre as categorias de APOL1
-        y=var_numerica, 
-        color='APOL1',
-        points="all", 
-        title=f"Distribuição de {var_numerica.upper()} por categoria de APOL1",
-        notched=True # Ajuda a visualizar a diferença estatística entre as medianas
+    # 2. Configurar a visualização do Mapa
+    view_state = pdk.ViewState(
+        latitude=map_df['lat'].mean(),
+        longitude=map_df['lon'].mean(),
+        zoom=4,
+        pitch=0
     )
-    st.plotly_chart(fig_box, use_container_width=True)
 
-    # --- SEÇÃO 3: OUTROS FATORES ---
-    st.divider()
-    c1, c2 = st.columns(2)
-    with c1:
-        st.write("**HBS (Fator)**")
-        st.bar_chart(df_filtrado['HBS'].value_counts())
-    with c2:
-        st.write("**IRA (Fator)**")
-        st.bar_chart(df_filtrado['IRA'].value_counts())
+    # 3. Criar a camada de círculos proporcionais
+    layer = pdk.Layer(
+        "ScatterplotLayer",
+        map_df,
+        get_position='[lon, lat]',
+        get_color='[200, 30, 0, 160]', # Cor vermelha com transparência
+        get_radius='casos * 3000',     # Ajuste este multiplicador para o tamanho das bolas
+        pickable=True,
+    )
+
+    # 4. Renderizar o Mapa
+    st.pydeck_chart(pdk.Deck(
+        layers=[layer],
+        initial_view_state=view_state,
+        tooltip={"text": "{proc}\nCasos: {casos}"}
+    ))
+
+    st.write(f"Exibindo dados de **{len(df)}** registros em **{len(map_df)}** cidades.")
 
 except Exception as e:
-    st.error(f"Erro ao processar dados: {e}")
+    st.error(f"Erro ao ler o arquivo Excel: {e}")
+    st.info("Dica: Verifique se o arquivo se chama 'dados.xlsx' e se as colunas 'proc', 'lat' e 'lon' existem.")
+
 
